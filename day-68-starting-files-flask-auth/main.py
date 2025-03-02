@@ -9,11 +9,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key-goes-here'
 
 # CREATE DATABASE
-
-
 class Base(DeclarativeBase):
     pass
-
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 db = SQLAlchemy(model_class=Base)
@@ -38,8 +35,17 @@ def home():
     return render_template("index.html")
 
 
-@app.route('/register')
+@app.route('/register',methods=['GET', 'POST'])
 def register():
+    if request.method == 'POST':
+        new_user = User(
+            email=request.form.get('email'),
+            password=request.form.get('password'),
+            name=request.form.get('name')
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        return render_template('secrets.html', user=new_user)
     return render_template("register.html")
 
 
@@ -60,7 +66,9 @@ def logout():
 
 @app.route('/download')
 def download():
-    pass
+    return send_from_directory(
+        'static', path='files/cheat_sheet.pdf'
+    )
 
 
 if __name__ == "__main__":
